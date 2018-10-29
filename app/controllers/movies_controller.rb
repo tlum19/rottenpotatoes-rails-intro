@@ -19,10 +19,11 @@ class MoviesController < ApplicationController
     when 'release_date'
       #do an ActiveRecord call to retrieve movies sorted by release date
       @movies= Movie.order('release_date')
-    when " "
+    when nil
       @movies = Movie.all
     end
-    #@movies = Movie.all
+    
+    
   end
 
   def new

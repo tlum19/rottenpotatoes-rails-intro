@@ -1,7 +1,7 @@
 class MoviesController < ApplicationController
 
   def movie_params
-    params.require(:movie).permit(:title, :rating, :description, :release_date)
+    params.require(:movie).permit(:title, :rating, :description, :release_date, :order.add_index_sort_order(options=:release_date))
   end
 
   def show
@@ -11,13 +11,24 @@ class MoviesController < ApplicationController
   end
 
   def index
-    @movies = Movie.all
+    sort_choice = params[:sort]
+    case sort_choice
+    when 'title'
+      #do an ActiveRecord call to retrieve movies sorted by title
+      @movies = Movie.order('title')
+    when 'release_date'
+      #do an ActiveRecord call to retrieve movies sorted by release date
+      @movies= Movie.order('release_date')
+    when " "
+      @movies = Movie.all
+    end
+    #@movies = Movie.all
   end
 
   def new
     # default: render 'new' template
   end
-
+  
   def create
     @movie = Movie.create!(movie_params)
     flash[:notice] = "#{@movie.title} was successfully created."
@@ -43,3 +54,4 @@ class MoviesController < ApplicationController
   end
 
 end
+

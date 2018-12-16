@@ -1,7 +1,7 @@
 class MoviesController < ApplicationController
 
   def movie_params
-    params.require(:movie).permit(:title, :rating, :description, :release_date, :order.add_index_sort_order(options=:release_date))
+    params.require(:movie).permit(:title, :rating, :description, :release_date)
   end
 
   def show
@@ -11,19 +11,26 @@ class MoviesController < ApplicationController
   end
 
   def index
-    sort_choice = params[:sort]
-    case sort_choice
+    sort = params[:sort] || session[:sort]
+    case sort
     when 'title'
-      #do an ActiveRecord call to retrieve movies sorted by title
-      @movies = Movie.order('title')
+      ordering,@title_header = {:title => :asc}, 'hilite'
     when 'release_date'
-      #do an ActiveRecord call to retrieve movies sorted by release date
-      @movies= Movie.order('release_date')
-    when nil
-      @movies = Movie.all
+      ordering,@date_header = {:release_date => :asc}, 'hilite'
+    end
+    @all_ratings = Movie.all_ratings
+    @selected_ratings = params[:ratings] || session[:ratings] || {}
+    
+    if @selected_ratings == {}
+      @selected_ratings = Hash[@all_ratings.map {|rating| [rating, rating]}]
     end
     
-    
+    if params[:sort] != session[:sort] or params[:ratings] != session[:ratings]
+      session[:sort] = sort
+      session[:ratings] = @selected_ratings
+      redirect_to :sort => sort, :ratings => @selected_ratings and return
+    end
+    @movies = Movie.where(rating: @selected_ratings.keys).order(ordering)
   end
 
   def new
